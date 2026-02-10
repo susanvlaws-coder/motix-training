@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTIX Leader | Flowchart Coach</title>
+    <style>
+        :root {
+            /* MOTIX NEW PALETTE */
+            --m-sage: #678d6e;      /* Primary / Safety / Go */
+            --m-rust: #c3542b;      /* Accent / Risk / Stop */
+            --m-black: #000000;     /* Backgrounds */
+            
+            /* UI Neutrals */
+            --m-panel: #121212;     /* Card Backgrounds */
+            --m-border: #333333;    /* Borders */
+            --m-text: #e0e0e0;      /* Main Text */
+            --m-muted: #888888;     /* Secondary Text */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #1a1a1a; /* Outer bg */
+            color: var(--m-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Device Frame */
+        .tablet-frame {
+            width: 900px;
+            height: 650px;
+            background-color: #0d0d0d;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 0 0 2px #333, 0 30px 60px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        .app-container {
+            background-color: var(--m-black);
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--m-border);
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--m-panel);
+            padding: 20px 25px;
+            border-bottom: 2px solid var(--m-sage);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand { 
+            font-size: 20px; font-weight: 800; color: var(--m-sage); 
+            letter-spacing: 2px; text-transform: uppercase; 
+        }
+        .role-badge { 
+            background: rgba(103, 141, 110, 0.15); 
+            color: var(--m-sage); 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            border: 1px solid var(--m-sage);
+            letter-spacing: 1px;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: var(--m-black);
+            padding: 15px 25px 0 25px;
+            gap: 5px;
+            border-bottom: 1px solid var(--m-border);
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: var(--m-panel);
+            color: var(--m-muted);
+            border: 1px solid var(--m-border);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { color: var(--m-text); background: #1f1f1f; }
+        .tab.active { 
+            background: var(--m-sage); 
+            color: var(--m-black); 
+            font-weight: 800; 
+            border-color: var(--m-sage);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .section { display: none; animation: fadeIn 0.4s ease; height: 100%; }
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- FLOWCHART STYLES (TAB 1) --- */
+        .flow-container {
+            display: flex;
+            height: 100%;
+            gap: 30px;
+        }
+
+        /* Left Side: Selectors */
+        .flow-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-right: 1px solid var(--m-border);
+            padding-right: 20px;
+        }
+
+        .menu-btn {
+            padding: 18px;
+            background: var(--m-panel);
+            border: 1px solid var(--m-border);
+            color: var(--m-muted);
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-btn:hover { border-color: var(--m-sage); color: var(--m-text); }
+        .menu-btn.active { 
+            background: rgba(103, 141, 110, 0.1); 
+            border-color: var(--m-sage); 
+            color: var(--m-sage); 
+            border-left: 4px solid var(--m-sage);
+        }
+        .menu-btn::after { content: '➔'; opacity: 0; transition: 0.2s; }
+        .menu-btn.active::after { opacity: 1; }
+
+        /* Right Side: The Visual Flow */
+        .flow-visual {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        /* Flow Nodes */
+        .node {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            animation: slideDown 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .node-trigger {
+            background: var(--m-panel);
+            border: 2px solid var(--m-sage);
+            color: var(--m-text);
+        }
+        .node-label { 
+            font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; display: block; margin-bottom: 5px;
+        }
+
+        .arrow-down {
+            font-size: 24px; color: var(--m-muted); margin: 10px 0;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .node-risk {
+            background: rgba(195, 84, 43, 0.1);
+            border: 2px solid var(--m-rust);
+            color: var(--m-text);
+            animation-delay: 0.2s;
+        }
+        .risk-badge { color: var(--m-rust); font-weight: 800; font-size: 12px; text-transform: uppercase; }
+
+        .node-script {
+            background: var(--m-text);
+            color: var(--m-black);
+            text-align: left;
+            border-left: 5px solid var(--m-sage);
+            animation-delay: 0.4s;
+        }
+        .script-quote { font-family: 'Georgia', serif; font-size: 15px; font-style: italic; line-height: 1.5; }
+
+        /* Placeholder state */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--m-muted); text-align: center;
+        }
+        .empty-icon { font-size: 40px; margin-bottom: 10px; color: var(--m-border); }
+
+        /* --- KPI TRACKER STYLES (TAB 2) --- */
+        .kpi-container {
+            background: var(--m-panel);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--m-border);
+        }
+
+        .kpi-row { margin-bottom: 35px; }
+        
+        .kpi-label { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 600; font-size: 14px; }
+        .kpi-val { color: var(--m-sage); font-family: monospace; font-size: 16px; }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        
+        /* Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 6px;
+            cursor: pointer;
+            background: var(--m-border);
+            border-radius: 3px;
+        }
+        
+        /* Thumb */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px; width: 24px;
+            border-radius: 50%;
+            background: var(--m-sage);
+            cursor: pointer;
+            margin-top: -9px;
+            border: 3px solid var(--m-black);
+            box-shadow: 0 0 0 1px var(--m-sage);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            margin-top: 30px;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: #111;
+            color: var(--m-muted);
+            border: 1px solid var(--m-border);
+            transition: 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="tablet-frame">
+    <div class="app-container">
+        
+        <div class="header">
+            <div class="brand">MOTIX <span style="font-weight:400; color:var(--m-muted);">| Leader Guide</span></div>
+            <div class="role-badge">LIVE SUPPORT</div>
+        </div>
+
+        <div class="nav-tabs">
+            <div class="tab active" onclick="switchTab('flowchart', this)">Diagnostic Flow</div>
+            <div class="tab" onclick="switchTab('kpi', this)">Adoption KPIs</div>
+        </div>
+
+        <div id="tab-flowchart" class="content-area section active">
+            <div class="flow-container">
+                
+                <div class="flow-menu">
+                    <div style="color:var(--m-muted); font-size:11px; text-transform:uppercase; margin-bottom:5px;">Observed Behavior</div>
+                    
+                    <div class="menu-btn" onclick="renderFlow('safety', this)">
+                        Skipped Safety Validation
+                    </div>
+                    <div class="menu-btn" onclick="renderFlow('downtime', this)">
+                        Logged "Other" Downtime
+                    </div>
+                    <div class="menu-btn" onclick="renderFlow('quality', this)">
+                        Ignoring "Hold" Alert
+                    </div>
+                    <div class="menu-btn" onclick="renderFlow('speed', this)">
+                        Rushing / Batch Logging
+                    </div>
+                </div>
+
+                <div class="flow-visual" id="flow-display">
+                    <div class="empty-state">
+                        <div class="empty-icon">☍</div>
+                        <div>Select an observation from the left<br>to generate the coaching path.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="tab-kpi" class="content-area section">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <div style="color:var(--m-muted); font-size:13px; text-transform:uppercase; letter-spacing:1px;">Weekly Proficiency Pulse Check</div>
+                <div style="color:var(--m-rust); font-size:11px;">*Updates Live</div>
+            </div>
+
+            <div class="kpi-container">
+                
+                <div class="kpi-row">
+                    <div class="kpi-label">
+                        <span>Data Entry Accuracy</span>
+                        <span class="kpi-val" id="val-1">50%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" oninput="updateKPI(1, this.value)">
+                </div>
+
+                <div class="kpi-row">
+                    <div class="kpi-label">
+                        <span>Downtime Categorization</span>
+                        <span class="kpi-val" id="val-2">50%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" oninput="updateKPI(2, this.value)">
+                </div>
+
+                <div class="kpi-row">
+                    <div class="kpi-label">
+                        <span>Safety Validation Compliance</span>
+                        <span class="kpi-val" id="val-3">50%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" oninput="updateKPI(3, this.value)">
+                </div>
+
+                <div id="team-status" class="status-badge">
+                    TEAM STATUS: ASSESSING...
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- DATA ---
+    const flows = {
+        safety: {
+            title: "Skipped Safety Validation",
+            risk: "Liability Risk + Safety Culture Erosion",
+            script: "\"I noticed the guard validation wasn't logged before the cycle started. The system lets you pass, but MAPS is designed to protect YOU. Let's reset and log it together.\""
+        },
+        downtime: {
+            title: "Logged \"Other\" Downtime",
+            risk: "Maintenance Blindness (2x Fix Time)",
+            script: "\"When we tag 'Other', Maintenance comes in blind without parts. If it's a Motor Jam, tag 'Mechanical -> Motor'. It saves everyone 20 minutes. Show me how you find that code?\""
+        },
+        quality: {
+            title: "Ignoring \"Hold\" Alert",
+            risk: "Defect Escape (10x Cost Downstream)",
+            script: "\"Pause there. See the Yellow Banner? That VIN is flagged for a tolerance check. Do not advance the line until Quality signs off. Let's radio them now.\""
+        },
+        speed: {
+            title: "Rushing / Batch Logging",
+            risk: "Inaccurate Timestamps & Traceability",
+            script: "\"I see you doing 5 units then logging them all at once. I know it feels faster, but it messes up the cycle time data we use for bonuses. Please log one-by-one as you build.\""
+        }
+    };
+
+    // --- TAB LOGIC ---
+    function switchTab(tabId, tabElement) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        tabElement.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // --- FLOWCHART LOGIC ---
+    function renderFlow(key, btnElement) {
+        // Active State for buttons
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        const data = flows[key];
+        const container = document.getElementById('flow-display');
+
+        // Render visual nodes
+        container.innerHTML = `
+            <div class="node node-trigger">
+                <span class="node-label" style="color:var(--m-sage)">Observation</span>
+                <div style="font-weight:600; font-size:16px;">${data.title}</div>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <div class="node node-risk">
+                <span class="node-label" style="color:var(--m-rust)">Business Risk</span>
+                <div style="font-size:14px;">${data.risk}</div>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <div class="node node-script">
+                <span class="node-label" style="color:var(--m-black); opacity:0.6;">Coaching Script</span>
+                <div class="script-quote">${data.script}</div>
+            </div>
+        `;
+    }
+
+    // --- KPI LOGIC ---
+    function updateKPI(id, value) {
+        const valEl = document.getElementById('val-' + id);
+        valEl.innerText = value + '%';
+        
+        // Dynamic Text Color based on value
+        if(value < 60) valEl.style.color = 'var(--m-rust)';
+        else valEl.style.color = 'var(--m-sage)';
+
+        calculateStatus();
+    }
+
+    function calculateStatus() {
+        const v1 = parseInt(document.getElementById('val-1').innerText);
+        const v2 = parseInt(document.getElementById('val-2').innerText);
+        const v3 = parseInt(document.getElementById('val-3').innerText);
+        
+        const avg = (v1 + v2 + v3) / 3;
+        const badge = document.getElementById('team-status');
+
+        if (avg >= 80) {
+            badge.style.background = 'rgba(103, 141, 110, 0.2)';
+            badge.style.color = 'var(--m-sage)';
+            badge.style.borderColor = 'var(--m-sage)';
+            badge.innerText = "STATUS: ADOPTION ON TRACK";
+        } else if (avg >= 60) {
+            badge.style.background = 'rgba(188, 181, 111, 0.1)'; // yellowish fallback (optional)
+            badge.style.color = '#bcb56f';
+            badge.style.borderColor = '#bcb56f';
+            badge.innerText = "STATUS: COACHING REQUIRED";
+        } else {
+            badge.style.background = 'rgba(195, 84, 43, 0.2)';
+            badge.style.color = 'var(--m-rust)';
+            badge.style.borderColor = 'var(--m-rust)';
+            badge.innerText = "STATUS: CRITICAL GAPS";
+        }
+    }
+
+    // Init
+    calculateStatus();
+
+</script>
+
+</body>
+</html>
