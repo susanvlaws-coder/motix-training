@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTIX Director | Plant Overview</title>
+    <style>
+        :root {
+            /* MOTIX PALETTE */
+            --m-sage: #678d6e;      /* Good / Stable */
+            --m-rust: #c3542b;      /* Critical / Risk */
+            --m-black: #000000;     /* Deep Background */
+            --m-panel: #111111;     /* Surface */
+            --m-border: #333333;    /* Borders */
+            --m-text: #e0e0e0;      /* Text */
+            --m-gold: #d4ac0d;      /* Warning */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #0a0a0a;
+            color: var(--m-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Screen Frame (Desktop Monitor style) */
+        .monitor-frame {
+            width: 1000px;
+            height: 650px;
+            background-color: var(--m-black);
+            border: 1px solid #444;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px;
+        }
+
+        /* Top Navigation Bar */
+        .top-bar {
+            background-color: var(--m-panel);
+            height: 60px;
+            border-bottom: 1px solid var(--m-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+
+        .brand { 
+            font-size: 20px; font-weight: 800; color: var(--m-sage); 
+            letter-spacing: 2px; text-transform: uppercase; 
+        }
+
+        .global-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .g-stat {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+        }
+        .g-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .g-val { font-size: 18px; font-weight: 700; font-family: monospace; color: var(--m-text); }
+
+        /* Main Grid Layout */
+        .dashboard-container {
+            display: flex;
+            height: 100%;
+        }
+
+        /* Left: Factory Map */
+        .map-section {
+            flex: 2;
+            padding: 30px;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            position: relative;
+        }
+
+        .section-title {
+            position: absolute; top: 20px; left: 30px;
+            font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #666;
+        }
+
+        /* The Grid Map */
+        .factory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+            height: 100%;
+            padding-top: 20px;
+        }
+
+        .shop-node {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--m-border);
+            border-radius: 6px;
+            padding: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .shop-node:hover { background: rgba(255,255,255,0.08); transform: scale(1.02); }
+        .shop-node.active { border-color: white; background: rgba(255,255,255,0.1); }
+
+        /* Status Colors */
+        .status-green { border-top: 4px solid var(--m-sage); }
+        .status-red { border-top: 4px solid var(--m-rust); }
+        .status-yellow { border-top: 4px solid var(--m-gold); }
+
+        /* Blinking Alert for Red Shops */
+        .alert-dot {
+            width: 8px; height: 8px; background: var(--m-rust); border-radius: 50%;
+            position: absolute; top: 15px; right: 15px;
+            animation: pulse 1s infinite;
+            display: none;
+        }
+        .status-red .alert-dot { display: block; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .shop-name { font-size: 14px; font-weight: 700; color: #ddd; text-transform: uppercase; }
+        .shop-metric { font-size: 24px; font-weight: 300; font-family: monospace; margin-top: 10px; }
+        .shop-label { font-size: 10px; color: #666; }
+
+        /* Right: Detail Panel */
+        .detail-panel {
+            flex: 1;
+            background: var(--m-panel);
+            border-left: 1px solid var(--m-border);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            border-bottom: 1px solid var(--m-border);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .ph-title { font-size: 22px; font-weight: 800; color: white; margin-bottom: 5px; }
+        .ph-subtitle { font-size: 12px; color: #888; text-transform: uppercase; }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+        .m-label { font-size: 13px; color: #aaa; }
+        .m-bar-container { flex: 1; height: 6px; background: #333; margin: 0 15px; border-radius: 3px; }
+        .m-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .m-value { font-size: 14px; font-family: monospace; width: 40px; text-align: right; }
+
+        /* Action Box */
+        .action-required {
+            background: rgba(195, 84, 43, 0.15);
+            border: 1px solid var(--m-rust);
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: auto;
+            display: none; /* Hidden by default */
+        }
+        
+        .ar-title { color: var(--m-rust); font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+        .ar-text { font-size: 13px; line-height: 1.5; color: #ddd; }
+
+        .btn-deploy {
+            background: var(--m-rust); color: black; border: none; width: 100%; padding: 12px;
+            margin-top: 15px; font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;
+            cursor: pointer; border-radius: 4px;
+        }
+        .btn-deploy:hover { background: white; }
+
+    </style>
+</head>
+<body>
+
+<div class="monitor-frame">
+    
+    <div class="top-bar">
+        <div class="brand">MOTIX <span style="font-weight:400; color:#666; font-size:14px;">| Director View</span></div>
+        <div class="global-stats">
+            <div class="g-stat">
+                <span class="g-label">Global Adoption</span>
+                <span class="g-val" style="color:var(--m-sage)">84%</span>
+            </div>
+            <div class="g-stat">
+                <span class="g-label">Error Rate</span>
+                <span class="g-val" style="color:var(--m-rust)">3.2%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="map-section">
+            <span class="section-title">Facility 05 Status Map</span>
+            
+            <div class="factory-grid">
+                <div class="shop-node status-green" onclick="loadShop(1)">
+                    <div class="shop-name">01 Stamping</div>
+                    <div>
+                        <div class="shop-metric" style="color:var(--m-sage)">98%</div>
+                        <div class="shop-label">Adoption</div>
+                    </div>
+                </div>
+
+                <div class="shop-node status-red" onclick="loadShop(2)">
+                    <div class="alert-dot"></div>
+                    <div class="shop-name">02 Body Shop</div>
+                    <div>
+                        <div class="shop-metric" style="color:var(--m-rust)">42%</div>
+                        <div class="shop-label">Adoption</div>
+                    </div>
+                </div>
+
+                <div class="shop-node status-yellow" onclick="loadShop(3)">
+                    <div class="shop-name">03 Paint</div>
+                    <div>
+                        <div class="shop-metric" style="color:var(--m-gold)">76%</div>
+                        <div class="shop-label">Adoption</div>
+                    </div>
+                </div>
+
+                <div class="shop-node status-green" onclick="loadShop(4)">
+                    <div class="shop-name">04 Assembly A</div>
+                    <div>
+                        <div class="shop-metric" style="color:var(--m-sage)">92%</div>
+                        <div class="shop-label">Adoption</div>
+                    </div>
+                </div>
+
+                <div class="shop-node status-green" onclick="loadShop(5)">
+                    <div class="shop-name">05 Assembly B</div>
+                    <div>
+                        <div class="shop-metric" style="color:var(--m-sage)">95%</div>
+                        <div class="shop-label">Adoption</div>
+                    </div>
+                </div>
+
+                <div class="shop-node status-green" onclick="loadShop(6)">
+                    <div class="shop-name">06 Quality</div>
+                    <div>
+                        <div class="shop-metric" style="color:var(--m-sage)">100%</div>
+                        <div class="shop-label">Adoption</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel">
+            <div class="panel-header">
+                <div class="ph-title" id="d-title">Select Shop</div>
+                <div class="ph-subtitle" id="d-status">Waiting for input...</div>
+            </div>
+
+            <div id="metrics-area" style="opacity:0.3">
+                <div class="metric-row">
+                    <span class="m-label">Safety Compliance</span>
+                    <div class="m-bar-container"><div class="m-bar-fill" id="bar-1" style="width:0%"></div></div>
+                    <span class="m-value" id="val-1">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="m-label">Data Accuracy</span>
+                    <div class="m-bar-container"><div class="m-bar-fill" id="bar-2" style="width:0%"></div></div>
+                    <span class="m-value" id="val-2">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="m-label">Downtime Logs</span>
+                    <div class="m-bar-container"><div class="m-bar-fill" id="bar-3" style="width:0%"></div></div>
+                    <span class="m-value" id="val-3">--</span>
+                </div>
+            </div>
+
+            <div class="action-required" id="action-box">
+                <div class="ar-title">⚠️ Intervention Recommended</div>
+                <div class="ar-text">Adoption KPIs have dropped below threshold. Shift Manager hasn't accessed Coaching Toolkit in 48 hours.</div>
+                <button class="btn-deploy" onclick="alert('Notification Sent to Shift Lead: Please review Coaching Toolkit > Safety Module')">Notify Shift Lead</button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const shopData = {
+        1: { name: "01 Stamping", status: "Optimal", color: "var(--m-sage)", m1: 98, m2: 99, m3: 95, action: false },
+        2: { name: "02 Body Shop", status: "Critical Risk", color: "var(--m-rust)", m1: 45, m2: 42, m3: 60, action: true },
+        3: { name: "03 Paint", status: "Monitor", color: "var(--m-gold)", m1: 80, m2: 76, m3: 70, action: false },
+        4: { name: "04 Assembly A", status: "Optimal", color: "var(--m-sage)", m1: 90, m2: 92, m3: 94, action: false },
+        5: { name: "05 Assembly B", status: "Optimal", color: "var(--m-sage)", m1: 94, m2: 95, m3: 96, action: false },
+        6: { name: "06 Quality", status: "Optimal", color: "var(--m-sage)", m1: 100, m2: 100, m3: 100, action: false },
+    };
+
+    function loadShop(id) {
+        const data = shopData[id];
+        
+        // Highlight active shop on map
+        document.querySelectorAll('.shop-node').forEach(n => n.classList.remove('active'));
+        // (In a real app we'd target specific node, here simple click)
+        
+        // Update Details
+        document.getElementById('d-title').innerText = data.name;
+        
+        const statusEl = document.getElementById('d-status');
+        statusEl.innerText = data.status;
+        statusEl.style.color = data.color;
+
+        document.getElementById('metrics-area').style.opacity = '1';
+
+        updateBar(1, data.m1, data.color);
+        updateBar(2, data.m2, data.color);
+        updateBar(3, data.m3, data.color);
+
+        // Show/Hide Action Box
+        const actionBox = document.getElementById('action-box');
+        if(data.action) {
+            actionBox.style.display = 'block';
+        } else {
+            actionBox.style.display = 'none';
+        }
+    }
+
+    function updateBar(id, val, color) {
+        document.getElementById('val-' + id).innerText = val + '%';
+        const bar = document.getElementById('bar-' + id);
+        bar.style.width = val + '%';
+        bar.style.background = color;
+    }
+</script>
+
+</body>
+</html>
